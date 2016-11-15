@@ -160,6 +160,23 @@ yourls.prototype.expand = function(item, cb) {
 };
 
 /**
+ * Request to delete a shorturl. Needs plugin on server-side: https://github.com/claytondaley/yourls-api-delete
+ * @param  {String} item The short url or hash to delete
+ * @param  {Function} cb The callback function with the results
+ * @return {void}
+ */
+yourls.prototype.delete = function(item, cb) {
+	var query = {
+		signature: this.config.api_token,
+		shorturl: item,
+		action: 'delete'
+	};
+	query.format = this._checkFormat(this.config.format, query.action);
+
+	this._doRequest(this._generateNiceUrl(query), cb);
+};
+
+/**
  * Request to retrieve stats on a specific short url/hash
  * @param  {String} item The short url or hash to get stats on
  * @param  {Function} cb The callback function with the results
