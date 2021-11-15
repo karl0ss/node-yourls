@@ -19,7 +19,7 @@ var https = require('https');
  * @param {String} api_token  The users API token
  * @param {Object} options    Optional options
  */
-var yourls = function(yourls_url, api_token, options) {
+var yourls = function (yourls_url, api_token, options) {
 	// Set default options
 	options = options || {
 		format: 'json'
@@ -30,7 +30,7 @@ var yourls = function(yourls_url, api_token, options) {
 		api_token: api_token,
 		format: options.format,
 		api_url: yourls_url.replace(/https?:\/\//gi, ''), // remove http(s):// from url
-		protocol: yourls_url.indexOf('https://') == 0 ? 'https': 'http' // defaults to http
+		protocol: yourls_url.indexOf('https://') == 0 ? 'https' : 'http' // defaults to http
 	};
 
 	return this;
@@ -42,13 +42,13 @@ var yourls = function(yourls_url, api_token, options) {
  * @param {String} action Yourls action (shorturl, expand, etc)
  * @return {String} Valid format [json, jsonp, xml, simple], json as default
  */
-yourls.prototype._checkFormat = function(format, action) {
+yourls.prototype._checkFormat = function (format, action) {
 	var valid_format = 'json';
 	// valid for all
-	if( ['json', 'jsonp', 'xml'].indexOf(format) >= 0 ) {
+	if (['json', 'jsonp', 'xml'].indexOf(format) >= 0) {
 		valid_format = format;
 	}
-	else if( format === 'simple' && ['shorturl', 'expand'].indexOf(action)  >= 0) {
+	else if (format === 'simple' && ['shorturl', 'expand'].indexOf(action) >= 0) {
 		valid_format = 'simple';
 	}
 
@@ -61,7 +61,7 @@ yourls.prototype._checkFormat = function(format, action) {
  * @param  {Object} query The query object
  * @return {Object}       The URL object for this request
  */
-yourls.prototype._generateNiceUrl = function(query) {
+yourls.prototype._generateNiceUrl = function (query) {
 	var result = url.parse(url.format({
 		protocol: this.config.protocol,
 		hostname: this.config.api_url,
@@ -69,7 +69,7 @@ yourls.prototype._generateNiceUrl = function(query) {
 		query: query
 	}));
 	// HACK: Fixes the redirection issue in node 0.4.x
-	if( !result.path ) {
+	if (!result.path) {
 		result.path = result.pathname + result.search;
 	}
 
@@ -82,28 +82,28 @@ yourls.prototype._generateNiceUrl = function(query) {
  * @param  {Function} cb            The callback function for the returned data
  * @return {void}
  */
-yourls.prototype._doRequest = function(request_query, cb) {
+yourls.prototype._doRequest = function (request_query, cb) {
 	// Pass the requested URL as an object to the get request
-	var protocol = this.config.protocol === 'https' ? https: http;
+	var protocol = this.config.protocol === 'https' ? https : http;
 	//var protocol = require(this.config.protocol);
-	protocol.get(request_query, function(res) {
-			var data = [];
-			res
-			.on('data', function(chunk) { data.push(chunk); })
-			.on('end', function() {
-					var urldata = data.join('').trim();
-					var result;
-					try {
-						result = JSON.parse(urldata);
-					} catch (exp) {
-						result = {'status_code': 500, 'status_text': 'JSON Parse Failed'}
-					}
-					cb(null, result);
+	protocol.get(request_query, function (res) {
+		var data = [];
+		res
+			.on('data', function (chunk) { data.push(chunk); })
+			.on('end', function () {
+				var urldata = data.join('').trim();
+				var result;
+				try {
+					result = JSON.parse(urldata);
+				} catch (exp) {
+					result = { 'status_code': 500, 'status_text': 'JSON Parse Failed' }
+				}
+				cb(null, result);
 			});
 	})
-	.on('error', function(e) {
+		.on('error', function (e) {
 			cb(e);
-	});
+		});
 };
 
 /**
@@ -112,7 +112,7 @@ yourls.prototype._doRequest = function(request_query, cb) {
  * @param  {Function} cb      The callback function with the results
  * @return {void}
  */
-yourls.prototype.shorten = function(longUrl, cb) {
+yourls.prototype.shorten = function (longUrl, cb) {
 	var query = {
 		signature: this.config.api_token,
 		url: longUrl,
@@ -130,7 +130,7 @@ yourls.prototype.shorten = function(longUrl, cb) {
  * @param  {Function} cb         The callback function with the results
  * @return {void}
  */
-yourls.prototype.vanity = function(longUrl, vanityName, cb) {
+yourls.prototype.vanity = function (longUrl, vanityName, cb) {
 	var query = {
 		signature: this.config.api_token,
 		url: longUrl,
@@ -148,7 +148,7 @@ yourls.prototype.vanity = function(longUrl, vanityName, cb) {
  * @param  {Function} cb   The callback function with the results
  * @return {void}
  */
-yourls.prototype.expand = function(item, cb) {
+yourls.prototype.expand = function (item, cb) {
 	var query = {
 		signature: this.config.api_token,
 		shorturl: item,
@@ -165,7 +165,7 @@ yourls.prototype.expand = function(item, cb) {
  * @param  {Function} cb The callback function with the results
  * @return {void}
  */
-yourls.prototype.delete = function(item, cb) {
+yourls.prototype.delete = function (item, cb) {
 	var query = {
 		signature: this.config.api_token,
 		shorturl: item,
@@ -177,12 +177,54 @@ yourls.prototype.delete = function(item, cb) {
 };
 
 /**
+ * Request to check a url. Needs plugin on server-side: https://github.com/timcrockford/yourls-api-edit-url
+ * @param  {String} url The url to check
+ * @param  {Boolean} exactly_once  Optional. If True, will return only one shorturl keyword. If False, will return all keywords associated with the URL. Defaults to True
+ * @param  {Function} cb The callback function with the results
+ * @return {void}
+ */
+yourls.prototype.delete = function (item, cb) {
+	var query = {
+		signature: this.config.api_token,
+		url: url,
+		exactly_once: exactly_once,
+		action: 'geturl'
+	};
+	query.format = this._checkFormat(this.config.format, query.action);
+
+	this._doRequest(this._generateNiceUrl(query), cb);
+};
+
+
+/**
+ * Request to update a url. Needs plugin on server-side: https://github.com/timcrockford/yourls-api-edit-url
+ * @param  {String} shorturl The URL to be updated
+ * @param  {String} url The new url to add
+ * @param  {Boolean} title  Optional. The title of the new URL. Pass 'keep' to keep the current title or 'auto' to infer the title from the url. Empty by default.
+ * @param  {Function} cb The callback function with the results
+ * @return {void}
+ */
+yourls.prototype.delete = function (shorturl, url, title, cb) {
+	var query = {
+		signature: this.config.api_token,
+		shorturl: shorturl,
+		url: url,
+		title: title,
+		action: 'update'
+	};
+	query.format = this._checkFormat(this.config.format, query.action);
+
+	this._doRequest(this._generateNiceUrl(query), cb);
+};
+
+
+/**
  * Request to retrieve stats on a specific short url/hash
  * @param  {String} item The short url or hash to get stats on
  * @param  {Function} cb The callback function with the results
  * @return {void}
  */
-yourls.prototype.urlstats = function(item, cb) {
+yourls.prototype.urlstats = function (item, cb) {
 	var query = {
 		signature: this.config.api_token,
 		shorturl: item,
@@ -200,13 +242,13 @@ yourls.prototype.urlstats = function(item, cb) {
  * @param  {Function} cb The callback function with the results
  * @return {void}
  */
-yourls.prototype.stats = function(limit, filter, cb) {
+yourls.prototype.stats = function (limit, filter, cb) {
 	var max = parseInt(limit);
 	var query = {
 		signature: this.config.api_token,
 		action: 'url-stats',
-		filter: ["top", "bottom" , "rand", "last"].indexOf(filter) >= 0 ? filter: 'top', // retrive top urls by default
-		limit: max > 1 ? max: 1
+		filter: ["top", "bottom", "rand", "last"].indexOf(filter) >= 0 ? filter : 'top', // retrive top urls by default
+		limit: max > 1 ? max : 1
 	};
 	query.format = this._checkFormat(this.config.format, query.action);
 
@@ -218,7 +260,7 @@ yourls.prototype.stats = function(limit, filter, cb) {
  * @param  {Function} cb The callback function with the results
  * @return {void}
  */
-yourls.prototype.dbstats = function(cb) {
+yourls.prototype.dbstats = function (cb) {
 	var query = {
 		signature: this.config.api_token,
 		action: 'db-stats'
