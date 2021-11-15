@@ -183,7 +183,7 @@ yourls.prototype.delete = function (item, cb) {
  * @param  {Function} cb The callback function with the results
  * @return {void}
  */
-yourls.prototype.delete = function (item, cb) {
+yourls.prototype.geturl = function (item, cb) {
 	var query = {
 		signature: this.config.api_token,
 		url: url,
@@ -204,7 +204,7 @@ yourls.prototype.delete = function (item, cb) {
  * @param  {Function} cb The callback function with the results
  * @return {void}
  */
-yourls.prototype.delete = function (shorturl, url, title, cb) {
+yourls.prototype.update = function (shorturl, url, title, cb) {
 	var query = {
 		signature: this.config.api_token,
 		shorturl: shorturl,
